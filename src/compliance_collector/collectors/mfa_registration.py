@@ -46,7 +46,7 @@ class MfaRegistrationCollector(BaseCollector):
                     "defaultMfaMethod": u.default_mfa_method.value
                     if u.default_mfa_method
                     else None,
-                    "methodsRegistered": [m for m in (u.methods_registered or [])],
+                    "methodsRegistered": list(u.methods_registered or []),
                     "lastUpdatedDateTime": str(u.last_updated_date_time)
                     if u.last_updated_date_time
                     else None,

@@ -151,7 +151,7 @@ def _ga_count(evidence_dir: Path, expected: Any) -> tuple[str, str]:
     actual = summary.get("global_admin_count", 0)
     if _compare_pct(actual, str(expected)):
         return PASS, f"Global admin count {actual} satisfies '{expected}'."
-    return FAIL, f"Global admin count {actual} does not satisfy '{expected}' (CIS recommends 2–4)."
+    return FAIL, f"Global admin count {actual} does not satisfy '{expected}' (CIS recommends 2-4)."
 
 
 # -------- Evaluator --------
