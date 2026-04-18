@@ -58,16 +58,18 @@ def _controls_with_evidence(
         required = [e.collector for e in c.evidence]
         available = [r for r in required if r in collector_names]
         missing = [r for r in required if r not in collector_names]
-        results.append({
-            "control_id": c.control_id,
-            "framework": c.framework,
-            "title": c.title,
-            "description": c.description,
-            "required_collectors": required,
-            "available_collectors": available,
-            "missing_collectors": missing,
-            "has_all_evidence": len(missing) == 0,
-        })
+        results.append(
+            {
+                "control_id": c.control_id,
+                "framework": c.framework,
+                "title": c.title,
+                "description": c.description,
+                "required_collectors": required,
+                "available_collectors": available,
+                "missing_collectors": missing,
+                "has_all_evidence": len(missing) == 0,
+            }
+        )
     return results
 
 
@@ -98,8 +100,7 @@ def render_report(
         fw: {
             "total": len(fw_controls),
             "covered": sum(
-                1 for row in control_rows
-                if row["framework"] == fw and row["has_all_evidence"]
+                1 for row in control_rows if row["framework"] == fw and row["has_all_evidence"]
             ),
         }
         for fw, fw_controls in frameworks.items()

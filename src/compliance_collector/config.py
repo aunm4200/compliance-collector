@@ -14,7 +14,9 @@ _yaml = YAML(typ="safe")
 class ControlEvidence(BaseModel):
     """A single piece of evidence referenced by a control."""
 
-    collector: str = Field(..., description="Dotted collector name, e.g. 'conditional_access.policies'")
+    collector: str = Field(
+        ..., description="Dotted collector name, e.g. 'conditional_access.policies'"
+    )
     required_fields: list[str] = Field(default_factory=list)
 
 

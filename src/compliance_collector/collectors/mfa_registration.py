@@ -34,18 +34,24 @@ class MfaRegistrationCollector(BaseCollector):
 
         users: list[dict[str, Any]] = []
         for u in response.value:
-            users.append({
-                "id": u.id,
-                "userPrincipalName": u.user_principal_name,
-                "userDisplayName": u.user_display_name,
-                "isAdmin": u.is_admin,
-                "isMfaCapable": u.is_mfa_capable,
-                "isMfaRegistered": u.is_mfa_registered,
-                "isPasswordlessCapable": u.is_passwordless_capable,
-                "defaultMfaMethod": u.default_mfa_method.value if u.default_mfa_method else None,
-                "methodsRegistered": [m for m in (u.methods_registered or [])],
-                "lastUpdatedDateTime": str(u.last_updated_date_time) if u.last_updated_date_time else None,
-            })
+            users.append(
+                {
+                    "id": u.id,
+                    "userPrincipalName": u.user_principal_name,
+                    "userDisplayName": u.user_display_name,
+                    "isAdmin": u.is_admin,
+                    "isMfaCapable": u.is_mfa_capable,
+                    "isMfaRegistered": u.is_mfa_registered,
+                    "isPasswordlessCapable": u.is_passwordless_capable,
+                    "defaultMfaMethod": u.default_mfa_method.value
+                    if u.default_mfa_method
+                    else None,
+                    "methodsRegistered": [m for m in (u.methods_registered or [])],
+                    "lastUpdatedDateTime": str(u.last_updated_date_time)
+                    if u.last_updated_date_time
+                    else None,
+                }
+            )
 
         # Compute a small summary for quick auditor consumption
         total = len(users)
@@ -59,7 +65,9 @@ class MfaRegistrationCollector(BaseCollector):
             "mfa_registered_pct": round(100 * mfa_registered / total, 2) if total else 0,
             "total_admins": len(admins),
             "admin_mfa_registered": admin_mfa_registered,
-            "admin_mfa_coverage_pct": round(100 * admin_mfa_registered / len(admins), 2) if admins else 0,
+            "admin_mfa_coverage_pct": round(100 * admin_mfa_registered / len(admins), 2)
+            if admins
+            else 0,
         }
 
         return {
