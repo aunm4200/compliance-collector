@@ -1,0 +1,50 @@
+# CIS Microsoft 365 Foundations Benchmark v3.1
+# Partial mapping — initial controls to prove the framework. Expand over time.
+# Source: https://www.cisecurity.org/benchmark/microsoft_365
+
+- control_id: CIS-1.1.1
+  framework: CIS-M365-v3.1
+  title: Ensure Administrative accounts are separate and cloud-only
+  description: >
+    Administrative accounts should be cloud-only (not synced from on-prem) and
+    distinct from regular user accounts to limit blast radius of compromise.
+  evidence:
+    - collector: conditional_access_policies
+      required_fields: [displayName, state, conditions]
+  pass_criteria:
+    all_admin_accounts_cloud_only: true
+
+- control_id: CIS-1.1.2
+  framework: CIS-M365-v3.1
+  title: Ensure multifactor authentication is enabled for all users in administrative roles
+  description: >
+    All users assigned to privileged Entra roles must have MFA enforced,
+    typically via a Conditional Access policy targeting the directoryRoles
+    condition.
+  evidence:
+    - collector: conditional_access_policies
+      required_fields: [displayName, state, conditions, grantControls]
+  pass_criteria:
+    ca_policy_enforces_mfa_for_admins: true
+
+- control_id: CIS-1.1.3
+  framework: CIS-M365-v3.1
+  title: Ensure multifactor authentication is enabled for all users
+  description: >
+    A Conditional Access policy must enforce MFA for all users across all
+    cloud apps, with appropriate break-glass exclusions.
+  evidence:
+    - collector: conditional_access_policies
+  pass_criteria:
+    ca_policy_enforces_mfa_for_all_users: true
+
+- control_id: CIS-1.2.1
+  framework: CIS-M365-v3.1
+  title: Ensure Security Defaults is disabled on Entra ID
+  description: >
+    Security Defaults are mutually exclusive with Conditional Access. If using
+    CA policies (recommended), Security Defaults must be disabled.
+  evidence:
+    - collector: conditional_access_policies
+  pass_criteria:
+    security_defaults_disabled: true

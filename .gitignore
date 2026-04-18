@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+*.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets — NEVER commit
+.env
+*.pem
+*.pfx
+*.key
+*.cert
+secrets/
+
+# Evidence output — may contain tenant data
+evidence/
+!evidence/.gitkeep
+
+# Logs
+*.log
+
+# Local cert artifacts
+*.crt
+convert_cert.py
+
+# Local cert artifacts
+*.crt
+convert_cert.py
