@@ -73,7 +73,7 @@ def collect(
             count = asyncio.run(c.run(run_dir))
             results_table.add_row(c.name, "OK", str(count))
             collector_versions[c.name] = c.version
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             results_table.add_row(c.name, f"FAIL: {exc}", "-")
 
     console.print(results_table)

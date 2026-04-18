@@ -45,31 +45,36 @@ class PrivilegedRolesCollector(BaseCollector):
 
         assignments: list[dict[str, Any]] = []
         for role in roles_resp.value:
-            members_resp = await self.client.directory_roles.by_directory_role_id(role.id).members.get()
+            members_resp = await self.client.directory_roles.by_directory_role_id(
+                role.id
+            ).members.get()
             members = []
             if members_resp and members_resp.value:
                 for m in members_resp.value:
-                    members.append({
-                        "id": getattr(m, "id", None),
-                        "displayName": getattr(m, "display_name", None),
-                        "userPrincipalName": getattr(m, "user_principal_name", None),
-                        "type": type(m).__name__,
-                    })
-            assignments.append({
-                "roleId": role.id,
-                "displayName": role.display_name,
-                "description": role.description,
-                "roleTemplateId": role.role_template_id,
-                "memberCount": len(members),
-                "members": members,
-            })
+                    members.append(
+                        {
+                            "id": getattr(m, "id", None),
+                            "displayName": getattr(m, "display_name", None),
+                            "userPrincipalName": getattr(m, "user_principal_name", None),
+                            "type": type(m).__name__,
+                        }
+                    )
+            assignments.append(
+                {
+                    "roleId": role.id,
+                    "displayName": role.display_name,
+                    "description": role.description,
+                    "roleTemplateId": role.role_template_id,
+                    "memberCount": len(members),
+                    "members": members,
+                }
+            )
 
         # Summary for the auditor at a glance
         by_role = {a["displayName"]: a["memberCount"] for a in assignments}
         global_admin_count = by_role.get("Global Administrator", 0)
         privileged_total = sum(
-            count for name, count in by_role.items()
-            if name in PRIVILEGED_ROLE_NAMES
+            count for name, count in by_role.items() if name in PRIVILEGED_ROLE_NAMES
         )
 
         summary = {

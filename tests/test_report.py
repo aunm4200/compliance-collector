@@ -14,7 +14,9 @@ def test_render_report_produces_html(tmp_path: Path) -> None:
     (tmp_path / "conditional_access_policies.json").write_text(
         json.dumps({"value": [{"id": "a", "displayName": "Require MFA"}], "collected_count": 1})
     )
-    manifest = build_manifest(tmp_path, "tenant-x", "run-1", {"conditional_access_policies": "0.1.0"})
+    manifest = build_manifest(
+        tmp_path, "tenant-x", "run-1", {"conditional_access_policies": "0.1.0"}
+    )
 
     report = render_report(tmp_path, "tenant-x", "run-1", manifest)
 

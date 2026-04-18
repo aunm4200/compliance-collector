@@ -28,19 +28,26 @@ def test_compare_pct_operators() -> None:
 
 
 def test_ca_mfa_all_users_pass(tmp_path: Path) -> None:
-    _write(tmp_path / "conditional_access_policies.json", {
-        "value": [{
-            "displayName": "Require MFA for All",
-            "state": "enabled",
-            "conditions": {
-                "users": {"includeUsers": ["All"]},
-                "applications": {"includeApplications": ["All"]},
-            },
-            "grantControls": {"builtInControls": ["mfa"]},
-        }]
-    })
+    _write(
+        tmp_path / "conditional_access_policies.json",
+        {
+            "value": [
+                {
+                    "displayName": "Require MFA for All",
+                    "state": "enabled",
+                    "conditions": {
+                        "users": {"includeUsers": ["All"]},
+                        "applications": {"includeApplications": ["All"]},
+                    },
+                    "grantControls": {"builtInControls": ["mfa"]},
+                }
+            ]
+        },
+    )
     control = Control(
-        control_id="TEST-1", framework="TEST", title="MFA for All",
+        control_id="TEST-1",
+        framework="TEST",
+        title="MFA for All",
         evidence=[ControlEvidence(collector="conditional_access_policies")],
         pass_criteria={"ca_policy_enforces_mfa_for_all_users": True},
     )
@@ -49,19 +56,26 @@ def test_ca_mfa_all_users_pass(tmp_path: Path) -> None:
 
 
 def test_ca_mfa_all_users_fail_when_disabled(tmp_path: Path) -> None:
-    _write(tmp_path / "conditional_access_policies.json", {
-        "value": [{
-            "displayName": "Require MFA for All",
-            "state": "disabled",
-            "conditions": {
-                "users": {"includeUsers": ["All"]},
-                "applications": {"includeApplications": ["All"]},
-            },
-            "grantControls": {"builtInControls": ["mfa"]},
-        }]
-    })
+    _write(
+        tmp_path / "conditional_access_policies.json",
+        {
+            "value": [
+                {
+                    "displayName": "Require MFA for All",
+                    "state": "disabled",
+                    "conditions": {
+                        "users": {"includeUsers": ["All"]},
+                        "applications": {"includeApplications": ["All"]},
+                    },
+                    "grantControls": {"builtInControls": ["mfa"]},
+                }
+            ]
+        },
+    )
     control = Control(
-        control_id="TEST-2", framework="TEST", title="MFA for All",
+        control_id="TEST-2",
+        framework="TEST",
+        title="MFA for All",
         evidence=[ControlEvidence(collector="conditional_access_policies")],
         pass_criteria={"ca_policy_enforces_mfa_for_all_users": True},
     )
@@ -71,7 +85,9 @@ def test_ca_mfa_all_users_fail_when_disabled(tmp_path: Path) -> None:
 
 def test_not_applicable_when_evidence_missing(tmp_path: Path) -> None:
     control = Control(
-        control_id="TEST-3", framework="TEST", title="MFA coverage",
+        control_id="TEST-3",
+        framework="TEST",
+        title="MFA coverage",
         evidence=[ControlEvidence(collector="mfa_registration_report")],
         pass_criteria={"mfa_registered_pct": ">= 95"},
     )
@@ -80,12 +96,17 @@ def test_not_applicable_when_evidence_missing(tmp_path: Path) -> None:
 
 
 def test_admin_mfa_coverage_threshold(tmp_path: Path) -> None:
-    _write(tmp_path / "mfa_registration_report.json", {
-        "value": [],
-        "summary": {"admin_mfa_coverage_pct": 100.0},
-    })
+    _write(
+        tmp_path / "mfa_registration_report.json",
+        {
+            "value": [],
+            "summary": {"admin_mfa_coverage_pct": 100.0},
+        },
+    )
     control = Control(
-        control_id="TEST-4", framework="TEST", title="Admin MFA",
+        control_id="TEST-4",
+        framework="TEST",
+        title="Admin MFA",
         evidence=[ControlEvidence(collector="mfa_registration_report")],
         pass_criteria={"admin_mfa_coverage_pct": ">= 100"},
     )
@@ -93,12 +114,17 @@ def test_admin_mfa_coverage_threshold(tmp_path: Path) -> None:
 
 
 def test_global_admin_count_within_limits(tmp_path: Path) -> None:
-    _write(tmp_path / "privileged_role_assignments.json", {
-        "value": [],
-        "summary": {"global_admin_count": 3},
-    })
+    _write(
+        tmp_path / "privileged_role_assignments.json",
+        {
+            "value": [],
+            "summary": {"global_admin_count": 3},
+        },
+    )
     control = Control(
-        control_id="TEST-5", framework="TEST", title="GA count",
+        control_id="TEST-5",
+        framework="TEST",
+        title="GA count",
         evidence=[ControlEvidence(collector="privileged_role_assignments")],
         pass_criteria={"global_admin_count_within_limits": "<= 4"},
     )

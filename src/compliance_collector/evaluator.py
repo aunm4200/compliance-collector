@@ -29,9 +29,11 @@ ERROR = "error"
 
 def rule(name: str) -> Callable[[RuleFn], RuleFn]:
     """Register a function as an evaluation rule for a pass_criteria key."""
+
     def decorator(fn: RuleFn) -> RuleFn:
         RULES[name] = fn
         return fn
+
     return decorator
 
 
@@ -55,12 +57,13 @@ def _compare_pct(actual: float, expected: str) -> bool:
         ">=": actual >= val,
         "<=": actual <= val,
         "==": actual == val,
-        ">":  actual >  val,
-        "<":  actual <  val,
+        ">": actual > val,
+        "<": actual < val,
     }[op]
 
 
 # -------- Rule implementations --------
+
 
 @rule("ca_policy_enforces_mfa_for_all_users")
 def _ca_mfa_all_users(evidence_dir: Path, _expected: Any) -> tuple[str, str]:
@@ -106,7 +109,7 @@ def _ca_sign_in_freq(evidence_dir: Path, _expected: Any) -> tuple[str, str]:
         if p.get("state") != "enabled":
             continue
         session = p.get("sessionControls") or {}
-        if (session.get("signInFrequency") or {}):
+        if session.get("signInFrequency") or {}:
             return PASS, f"Policy '{p.get('displayName')}' configures sign-in frequency."
     return FAIL, "No enabled CA policy configures sign-in frequency."
 
@@ -153,21 +156,24 @@ def _ga_count(evidence_dir: Path, expected: Any) -> tuple[str, str]:
 
 # -------- Evaluator --------
 
+
 def evaluate_control(control: Control, evidence_dir: Path) -> dict[str, Any]:
     """Run all rules in a control's pass_criteria and aggregate the status."""
     rule_results = []
     for criterion, expected in (control.pass_criteria or {}).items():
         fn = RULES.get(criterion)
         if fn is None:
-            rule_results.append({
-                "criterion": criterion,
-                "status": NOT_APPLICABLE,
-                "reason": f"No rule implemented for '{criterion}'.",
-            })
+            rule_results.append(
+                {
+                    "criterion": criterion,
+                    "status": NOT_APPLICABLE,
+                    "reason": f"No rule implemented for '{criterion}'.",
+                }
+            )
             continue
         try:
             status, reason = fn(evidence_dir, expected)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             status, reason = ERROR, f"Rule raised: {exc}"
         rule_results.append({"criterion": criterion, "status": status, "reason": reason})
 
