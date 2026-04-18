@@ -46,7 +46,3 @@ evidence/
 # Local cert artifacts
 *.crt
 convert_cert.py
-
-# Local cert artifacts
-*.crt
-convert_cert.py
