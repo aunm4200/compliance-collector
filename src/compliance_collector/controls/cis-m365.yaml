@@ -1,4 +1,5 @@
-# CIS Microsoft 365 Foundations Benchmark v3.1 (partial mapping)
+# CIS Microsoft 365 Foundations Benchmark v3.1
+# Partial mapping — initial controls to prove the framework. Expand over time.
 # Source: https://www.cisecurity.org/benchmark/microsoft_365
 
 - control_id: CIS-1.1.1
@@ -9,7 +10,7 @@
     distinct from regular user accounts to limit blast radius of compromise.
   evidence:
     - collector: conditional_access_policies
-    - collector: mfa_registration_report
+      required_fields: [displayName, state, conditions]
   pass_criteria:
     all_admin_accounts_cloud_only: true
 
@@ -22,10 +23,9 @@
     condition.
   evidence:
     - collector: conditional_access_policies
-    - collector: mfa_registration_report
+      required_fields: [displayName, state, conditions, grantControls]
   pass_criteria:
     ca_policy_enforces_mfa_for_admins: true
-    admin_mfa_coverage_pct: ">= 100"
 
 - control_id: CIS-1.1.3
   framework: CIS-M365-v3.1
@@ -35,20 +35,8 @@
     cloud apps, with appropriate break-glass exclusions.
   evidence:
     - collector: conditional_access_policies
-    - collector: mfa_registration_report
   pass_criteria:
     ca_policy_enforces_mfa_for_all_users: true
-
-- control_id: CIS-1.1.4
-  framework: CIS-M365-v3.1
-  title: Ensure self-service password reset is enabled
-  description: >
-    Users should be able to reset their own passwords via verified methods
-    to reduce reliance on helpdesk and speed up account recovery.
-  evidence:
-    - collector: mfa_registration_report
-  pass_criteria:
-    sspr_enabled: true
 
 - control_id: CIS-1.2.1
   framework: CIS-M365-v3.1
@@ -60,36 +48,3 @@
     - collector: conditional_access_policies
   pass_criteria:
     security_defaults_disabled: true
-
-- control_id: CIS-1.3.1
-  framework: CIS-M365-v3.1
-  title: Ensure sign-in frequency is configured for high-risk users
-  description: >
-    Conditional Access session controls should enforce a sign-in frequency
-    for risky sign-ins to reduce session-token theft impact.
-  evidence:
-    - collector: conditional_access_policies
-  pass_criteria:
-    ca_policy_enforces_sign_in_frequency: true
-
-- control_id: CIS-5.1.1
-  framework: CIS-M365-v3.1
-  title: Ensure third-party integrated applications are not allowed
-  description: >
-    Users should not be able to consent to arbitrary third-party apps; admin
-    consent workflow should be enabled.
-  evidence:
-    - collector: conditional_access_policies
-  pass_criteria:
-    user_consent_restricted: true
-
-- control_id: CIS-5.2.2
-  framework: CIS-M365-v3.1
-  title: Ensure 'Passwords never expire' is not used
-  description: >
-    Password expiration is deprecated by NIST, but legacy orgs still require
-    evidence that "never expire" flag is not set organization-wide.
-  evidence:
-    - collector: mfa_registration_report
-  pass_criteria:
-    no_users_with_never_expire: true

@@ -13,10 +13,7 @@ from rich.table import Table
 from compliance_collector import __version__
 from compliance_collector.auth import build_graph_client
 from compliance_collector.collectors.conditional_access import ConditionalAccessCollector
-from compliance_collector.collectors.mfa_registration import MfaRegistrationCollector
-from compliance_collector.collectors.privileged_roles import PrivilegedRolesCollector
 from compliance_collector.manifest import build_manifest, write_manifest
-from compliance_collector.report import render_report
 
 app = typer.Typer(
     name="compliance-collector",
@@ -38,7 +35,6 @@ def collect(
     client_id: str = typer.Option(..., "--client-id", "-c", help="App registration client ID."),
     cert_path: Path = typer.Option(..., "--cert-path", "-k", help="Path to PEM certificate file."),
     output: Path = typer.Option(Path("./evidence"), "--output", "-o", help="Output directory."),
-    skip_report: bool = typer.Option(False, "--skip-report", help="Skip HTML report generation."),
 ) -> None:
     """Collect evidence from a Microsoft 365 tenant."""
     if not cert_path.exists():
@@ -57,8 +53,6 @@ def collect(
 
     collectors = [
         ConditionalAccessCollector(client),
-        MfaRegistrationCollector(client),
-        PrivilegedRolesCollector(client),
     ]
 
     results_table = Table(title="Collection Results")
@@ -73,7 +67,7 @@ def collect(
             count = asyncio.run(c.run(run_dir))
             results_table.add_row(c.name, "OK", str(count))
             collector_versions[c.name] = c.version
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 — we want to continue on any failure
             results_table.add_row(c.name, f"FAIL: {exc}", "-")
 
     console.print(results_table)
@@ -82,7 +76,3 @@ def collect(
     manifest_path = write_manifest(manifest, run_dir)
     console.print(f"\n[bold green]✓[/bold green] Manifest written: {manifest_path}")
     console.print(f"[bold green]✓[/bold green] {manifest['file_count']} evidence files collected.")
-
-    if not skip_report:
-        report_path = render_report(run_dir, tenant_id, run_id, manifest)
-        console.print(f"[bold green]✓[/bold green] HTML report: {report_path}")

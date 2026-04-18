@@ -30,22 +30,16 @@ class ConditionalAccessCollector(BaseCollector):
         policies = []
         for policy in response.value:
             # Each Graph object has a backing_store that holds raw values
-            policies.append(
-                {
-                    "id": policy.id,
-                    "displayName": policy.display_name,
-                    "state": policy.state.value if policy.state else None,
-                    "createdDateTime": str(policy.created_date_time)
-                    if policy.created_date_time
-                    else None,
-                    "modifiedDateTime": str(policy.modified_date_time)
-                    if policy.modified_date_time
-                    else None,
-                    "conditions": self._serialize(policy.conditions),
-                    "grantControls": self._serialize(policy.grant_controls),
-                    "sessionControls": self._serialize(policy.session_controls),
-                }
-            )
+            policies.append({
+                "id": policy.id,
+                "displayName": policy.display_name,
+                "state": policy.state.value if policy.state else None,
+                "createdDateTime": str(policy.created_date_time) if policy.created_date_time else None,
+                "modifiedDateTime": str(policy.modified_date_time) if policy.modified_date_time else None,
+                "conditions": self._serialize(policy.conditions),
+                "grantControls": self._serialize(policy.grant_controls),
+                "sessionControls": self._serialize(policy.session_controls),
+            })
 
         return {
             "value": policies,
