@@ -1,0 +1,76 @@
+# SOC 2 Trust Services Criteria (2017) — partial mapping
+# Evidence reuses the same collectors as CIS and ISO.
+# Source: https://www.aicpa-cima.com/resources/landing/system-and-organization-controls-soc-suite-of-services
+
+- control_id: SOC2-CC6.1
+  framework: SOC2-TSC-2017
+  title: Logical access security — restrict unauthorized access
+  description: >
+    The entity implements logical access security software, infrastructure,
+    and architectures over protected information assets to protect them from
+    security events.
+  evidence:
+    - collector: conditional_access_policies
+    - collector: mfa_registration_report
+  pass_criteria:
+    ca_policy_enforces_mfa_for_all_users: true
+    mfa_registered_pct: ">= 95"
+
+- control_id: SOC2-CC6.2
+  framework: SOC2-TSC-2017
+  title: Authorize new internal and external users
+  description: >
+    Prior to issuing system credentials and granting system access, the entity
+    registers and authorizes new internal and external users whose access is
+    administered by the entity.
+  evidence:
+    - collector: privileged_role_assignments
+  pass_criteria:
+    global_admin_count_within_limits: "<= 4"
+
+- control_id: SOC2-CC6.3
+  framework: SOC2-TSC-2017
+  title: Role-based access and least privilege
+  description: >
+    The entity authorizes, modifies, or removes access to data, software,
+    functions, and other protected information assets based on roles,
+    responsibilities, or the system design and changes.
+  evidence:
+    - collector: privileged_role_assignments
+    - collector: conditional_access_policies
+  pass_criteria:
+    ca_policy_enforces_mfa_for_admins: true
+
+- control_id: SOC2-CC6.6
+  framework: SOC2-TSC-2017
+  title: Protect against external threats
+  description: >
+    The entity implements logical access security measures to protect against
+    threats from sources outside its system boundaries.
+  evidence:
+    - collector: conditional_access_policies
+  pass_criteria:
+    ca_policy_enforces_mfa_for_all_users: true
+    ca_policy_enforces_sign_in_frequency: true
+
+- control_id: SOC2-CC6.7
+  framework: SOC2-TSC-2017
+  title: Restrict movement of information
+  description: >
+    The entity restricts the transmission, movement, and removal of
+    information to authorized internal and external users and processes.
+  evidence:
+    - collector: conditional_access_policies
+  pass_criteria:
+    ca_policy_enforces_sign_in_frequency: true
+
+- control_id: SOC2-CC7.2
+  framework: SOC2-TSC-2017
+  title: Monitor and detect security events
+  description: >
+    The entity monitors system components and the operation of those
+    components for anomalies indicative of security events.
+  evidence:
+    - collector: conditional_access_policies
+  pass_criteria:
+    ca_policy_enforces_mfa_for_admins: true

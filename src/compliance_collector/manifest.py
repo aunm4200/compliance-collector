@@ -41,11 +41,13 @@ def build_manifest(
     for path in sorted(evidence_dir.rglob("*")):
         if path.is_file() and path.name != "manifest.json":
             rel = path.relative_to(evidence_dir)
-            files.append({
-                "path": str(rel).replace("\\", "/"),
-                "sha256": sha256_file(path),
-                "size_bytes": path.stat().st_size,
-            })
+            files.append(
+                {
+                    "path": str(rel).replace("\\", "/"),
+                    "sha256": sha256_file(path),
+                    "size_bytes": path.stat().st_size,
+                }
+            )
 
     return {
         "schema_version": "1.0",

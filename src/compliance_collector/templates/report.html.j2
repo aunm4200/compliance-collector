@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Compliance Evidence Report — {{ run_id }}</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --panel: #1e293b;
+    --accent: #38bdf8;
+    --good: #22c55e;
+    --warn: #f59e0b;
+    --bad: #ef4444;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --border: #334155;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+  header {
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+  }
+  h1 { margin: 0 0 0.5rem 0; font-size: 1.75rem; }
+  h2 { color: var(--accent); margin-top: 2.5rem; font-size: 1.25rem; }
+  h3 { margin-top: 1.5rem; font-size: 1rem; color: var(--text); }
+  .meta { color: var(--muted); font-size: 0.9rem; }
+  .meta strong { color: var(--text); font-family: ui-monospace, monospace; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin: 1rem 0; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+  }
+  .card .label { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .card .value { font-size: 1.5rem; font-weight: 600; margin-top: 0.25rem; }
+  .card .sub   { color: var(--muted); font-size: 0.85rem; margin-top: 0.25rem; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.6rem 0.9rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+    vertical-align: top;
+  }
+  th { background: #0b1220; color: var(--accent); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }
+  tr:last-child td { border-bottom: none; }
+  .pill {
+    display: inline-block;
+    padding: 0.2rem 0.65rem;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+  .pill-pass { background: rgba(34,197,94,0.15); color: var(--good); }
+  .pill-fail { background: rgba(239,68,68,0.15);  color: var(--bad); }
+  .pill-na   { background: rgba(148,163,184,0.15); color: var(--muted); }
+  .pill-err  { background: rgba(245,158,11,0.15); color: var(--warn); }
+  code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.82rem; color: var(--muted); }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .reasons { margin: 0.25rem 0 0 0; padding-left: 1rem; color: var(--muted); font-size: 0.82rem; }
+  .reasons li { margin-bottom: 0.15rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.8rem; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Compliance Evidence Report</h1>
+    <div class="meta">
+      Tenant <strong>{{ tenant_id }}</strong> &middot;
+      Run <strong>{{ run_id }}</strong> &middot;
+      Generated <strong>{{ generated_at }}</strong>
+    </div>
+  </header>
+
+  <h2>Framework Coverage</h2>
+  <div class="grid">
+    {% for fw, stats in framework_stats.items() %}
+    <div class="card">
+      <div class="label">{{ fw }}</div>
+      <div class="value">{{ stats.pass }} / {{ stats.total }} passed</div>
+      <div class="sub">
+        <span class="pill pill-pass">{{ stats.pass }} pass</span>
+        <span class="pill pill-fail">{{ stats.fail }} fail</span>
+        <span class="pill pill-na">{{ stats.na }} n/a</span>
+      </div>
+    </div>
+    {% endfor %}
+    <div class="card">
+      <div class="label">Evidence Files</div>
+      <div class="value">{{ manifest.file_count }}</div>
+      <div class="sub">{{ summaries | length }} collectors run</div>
+    </div>
+  </div>
+
+  <h2>Collection Results</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Collector</th>
+        <th>Items</th>
+        <th>Summary</th>
+        <th>File</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for name, s in summaries.items() %}
+      <tr>
+        <td><strong>{{ name }}</strong></td>
+        <td>{{ s.count }}</td>
+        <td>
+          {% if s.summary %}
+            {% for k, v in s.summary.items() %}
+              <div><code>{{ k }}</code>: {{ v }}</div>
+            {% endfor %}
+          {% else %}
+            <span class="mono">—</span>
+          {% endif %}
+        </td>
+        <td><a href="{{ s.file }}">{{ s.file }}</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>Control Evaluation</h2>
+  {% for fw, items in evaluations_by_framework.items() %}
+  <h3>{{ fw }}</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Control</th>
+        <th>Title</th>
+        <th>Status</th>
+        <th>Details</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for e in items %}
+      <tr>
+        <td class="mono">{{ e.control_id }}</td>
+        <td>{{ e.title }}</td>
+        <td>
+          {% if e.status == 'pass' %}<span class="pill pill-pass">PASS</span>
+          {% elif e.status == 'fail' %}<span class="pill pill-fail">FAIL</span>
+          {% elif e.status == 'error' %}<span class="pill pill-err">ERROR</span>
+          {% else %}<span class="pill pill-na">N/A</span>{% endif %}
+        </td>
+        <td>
+          <ul class="reasons">
+          {% for r in e.rule_results %}
+            <li><code>{{ r.criterion }}</code>: {{ r.reason }}</li>
+          {% endfor %}
+          </ul>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endfor %}
+
+  <h2>Manifest Integrity</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>File</th>
+        <th>Size (bytes)</th>
+        <th>SHA-256</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for f in manifest.files %}
+      <tr>
+        <td><a href="{{ f.path }}">{{ f.path }}</a></td>
+        <td>{{ f.size_bytes }}</td>
+        <td class="mono">{{ f.sha256 }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+  <footer>
+    compliance-collector v0.3 &middot;
+    Open source evidence auto-collector for Microsoft 365 &middot;
+    Verify hashes with: <code>sha256sum &lt;file&gt;</code>
+  </footer>
+</div>
+</body>
+</html>
