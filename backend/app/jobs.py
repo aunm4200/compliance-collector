@@ -10,12 +10,14 @@ will replace this with an Azure Queue-triggered worker.
 
 from __future__ import annotations
 
+import contextlib
 from datetime import UTC, datetime
 
 import structlog
 from compliance_collector.collectors.conditional_access import ConditionalAccessCollector
 from compliance_collector.collectors.mfa_registration import MfaRegistrationCollector
 from compliance_collector.collectors.privileged_roles import PrivilegedRolesCollector
+from compliance_collector.report import render_report
 from msgraph import GraphServiceClient
 
 from .config import Settings
@@ -73,6 +75,16 @@ async def run_assessment(
                 )
 
         assessment.evidence_file_count = file_count
+
+        # Render HTML report (best-effort — lack of evidence shouldn't fail the run)
+        with contextlib.suppress(Exception):
+            render_report(
+                evidence_dir=run_dir,
+                tenant_id=assessment.tenant_id,
+                run_id=assessment.id,
+                manifest={"frameworks": [f.value for f in assessment.frameworks]},
+            )
+
         assessment.status = RunStatus.SUCCEEDED
     except Exception as exc:
         log.exception("assessment.failed", assessment_id=assessment.id)
