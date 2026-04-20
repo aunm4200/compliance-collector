@@ -72,12 +72,12 @@ def report_summary(
         bucket = _STATUS_MAP.get(e["status"], "error")
         totals[bucket] += 1
 
-        fw = per_framework.setdefault(
-            e["framework"], {"pass": 0, "fail": 0, "na": 0, "error": 0}
-        )
+        fw = per_framework.setdefault(e["framework"], {"pass": 0, "fail": 0, "na": 0, "error": 0})
         fw[bucket] += 1
 
-        finding_status = e["status"] if e["status"] in {"pass", "fail", "not_applicable"} else "error"
+        finding_status = (
+            e["status"] if e["status"] in {"pass", "fail", "not_applicable"} else "error"
+        )
         findings.append(
             ControlFinding(
                 control_id=e["control_id"],
