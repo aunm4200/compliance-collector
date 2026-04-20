@@ -67,9 +67,7 @@ def _cert_credential(settings: Settings, customer_tenant_id: str) -> Certificate
     )
 
 
-def build_customer_credential(
-    settings: Settings, customer_tenant_id: str
-) -> TokenCredentialLike:
+def build_customer_credential(settings: Settings, customer_tenant_id: str) -> TokenCredentialLike:
     """Return an appropriate Graph credential for ``customer_tenant_id``."""
     mode = settings.graph_auth_mode
     if mode == "mi_fic":

@@ -13,7 +13,6 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 import structlog
-
 from compliance_collector.collectors.conditional_access import ConditionalAccessCollector
 from compliance_collector.collectors.mfa_registration import MfaRegistrationCollector
 from compliance_collector.collectors.privileged_roles import PrivilegedRolesCollector
@@ -65,7 +64,7 @@ async def run_assessment(
                     assessment_id=assessment.id,
                     collector=collector.name,
                 )
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 log.warning(
                     "collector.fail",
                     assessment_id=assessment.id,
@@ -75,7 +74,7 @@ async def run_assessment(
 
         assessment.evidence_file_count = file_count
         assessment.status = RunStatus.SUCCEEDED
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         log.exception("assessment.failed", assessment_id=assessment.id)
         assessment.status = RunStatus.FAILED
         assessment.error_message = str(exc)

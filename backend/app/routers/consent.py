@@ -51,8 +51,7 @@ def get_consent_url(
         "state": state,
     }
     consent_url = (
-        f"https://login.microsoftonline.com/{principal.tenant_id}/adminconsent?"
-        + urlencode(params)
+        f"https://login.microsoftonline.com/{principal.tenant_id}/adminconsent?" + urlencode(params)
     )
     return ConsentInitResponse(consent_url=consent_url, state=state)
 
@@ -71,9 +70,7 @@ def consent_callback(
             status_code=status.HTTP_400_BAD_REQUEST, detail="unknown or expired state"
         )
     if pending["tenant_id"] != tenant:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="tenant mismatch"
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="tenant mismatch")
 
     record = ConsentRecord(
         tenant_id=tenant,

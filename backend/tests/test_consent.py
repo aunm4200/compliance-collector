@@ -13,9 +13,7 @@ def test_consent_url_requires_client_id(client: TestClient) -> None:
     assert r.status_code == 500
 
 
-def test_consent_url_returns_link(
-    client: TestClient, dev_settings: Settings
-) -> None:
+def test_consent_url_returns_link(client: TestClient, dev_settings: Settings) -> None:
     dev_settings.entra_app_client_id = "00000000-0000-0000-0000-000000000000"
     client.app.dependency_overrides[get_settings] = lambda: dev_settings
 

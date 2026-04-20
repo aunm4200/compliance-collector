@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
 
     # --- API ---
-    api_host: str = "0.0.0.0"  # noqa: S104 - container bind
+    api_host: str = "0.0.0.0"
     api_port: int = 8080
     cors_allow_origins: list[str] = Field(default_factory=lambda: ["http://localhost:3000"])
 

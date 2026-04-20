@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Literal
 
 from pydantic import BaseModel, Field
 
 
-class RunStatus(str, Enum):
+class RunStatus(StrEnum):
     """Lifecycle states for an assessment run."""
 
     QUEUED = "queued"
@@ -19,7 +19,7 @@ class RunStatus(str, Enum):
     CANCELED = "canceled"
 
 
-class Framework(str, Enum):
+class Framework(StrEnum):
     """Supported compliance frameworks."""
 
     CIS_M365 = "cis-m365"

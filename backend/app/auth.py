@@ -44,8 +44,7 @@ class _JwksCache:
         if self._keys is not None and time.time() < self._expires_at:
             return self._keys
         url = (
-            f"https://login.microsoftonline.com/{settings.entra_app_tenant_id}"
-            "/discovery/v2.0/keys"
+            f"https://login.microsoftonline.com/{settings.entra_app_tenant_id}/discovery/v2.0/keys"
         )
         async with httpx.AsyncClient(timeout=10.0) as client:
             resp = await client.get(url)
