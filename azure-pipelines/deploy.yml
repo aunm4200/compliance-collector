@@ -52,24 +52,18 @@ stages:
             fetchDepth: 1
 
           - task: AzureCLI@2
-            displayName: ACR login
+            displayName: az acr build (backend)
             inputs:
               azureSubscription: $(AZURE_SUBSCRIPTION_CONNECTION)
               scriptType: bash
               scriptLocation: inlineScript
-              inlineScript: az acr login --name $(ACR_NAME)
-
-          - task: Docker@2
-            displayName: Build & push backend
-            inputs:
-              command: buildAndPush
-              repository: backend
-              dockerfile: backend/Dockerfile
-              buildContext: backend
-              containerRegistry: $(AZURE_SUBSCRIPTION_CONNECTION)
-              tags: |
-                ${{ parameters.imageTag }}
-                latest
+              inlineScript: |
+                az acr build \
+                  --registry $(ACR_NAME) \
+                  --image backend:${{ parameters.imageTag }} \
+                  --image backend:latest \
+                  --file backend/Dockerfile \
+                  backend
 
       - job: BuildPortal
         displayName: Portal image
@@ -78,30 +72,23 @@ stages:
             fetchDepth: 1
 
           - task: AzureCLI@2
-            displayName: ACR login
+            displayName: az acr build (portal)
             inputs:
               azureSubscription: $(AZURE_SUBSCRIPTION_CONNECTION)
               scriptType: bash
               scriptLocation: inlineScript
-              inlineScript: az acr login --name $(ACR_NAME)
-
-          - task: Docker@2
-            displayName: Build & push portal
-            inputs:
-              command: buildAndPush
-              repository: portal
-              dockerfile: portal/Dockerfile
-              buildContext: portal
-              containerRegistry: $(AZURE_SUBSCRIPTION_CONNECTION)
-              arguments: >-
-                --build-arg NEXT_PUBLIC_BACKEND_URL=$(backendUrl)
-                --build-arg NEXT_PUBLIC_ENTRA_CLIENT_ID=$(ENTRA_CLIENT_ID)
-                --build-arg NEXT_PUBLIC_ENTRA_API_SCOPE=$(ENTRA_API_SCOPE)
-                --build-arg NEXT_PUBLIC_ENTRA_REDIRECT_URI=$(portalUrl)/auth/callback
-                --build-arg NEXT_PUBLIC_DEV_BYPASS_AUTH=false
-              tags: |
-                ${{ parameters.imageTag }}
-                latest
+              inlineScript: |
+                az acr build \
+                  --registry $(ACR_NAME) \
+                  --image portal:${{ parameters.imageTag }} \
+                  --image portal:latest \
+                  --file portal/Dockerfile \
+                  --build-arg NEXT_PUBLIC_BACKEND_URL=$(backendUrl) \
+                  --build-arg NEXT_PUBLIC_ENTRA_CLIENT_ID=$(ENTRA_CLIENT_ID) \
+                  --build-arg NEXT_PUBLIC_ENTRA_API_SCOPE=$(ENTRA_API_SCOPE) \
+                  --build-arg NEXT_PUBLIC_ENTRA_REDIRECT_URI=$(portalUrl)/auth/callback \
+                  --build-arg NEXT_PUBLIC_DEV_BYPASS_AUTH=false \
+                  portal
 
   - stage: Deploy
     displayName: Update Container Apps
