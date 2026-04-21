@@ -21,4 +21,3 @@ tests
 infra
 azure-pipelines
 portal
-*.md
