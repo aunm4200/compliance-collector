@@ -9,6 +9,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
 WORKDIR /build
 
 COPY pyproject.toml /build/pyproject.toml
+COPY README.md /build/README.md
 COPY src /build/src
 COPY backend /build/backend
 
