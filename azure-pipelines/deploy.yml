@@ -1,0 +1,145 @@
+# -----------------------------------------------------------------------------
+# Azure Pipelines — build & deploy compliance-collector v0.6
+#
+# Manual trigger. Builds both container images, pushes to ACR, then updates
+# the two Container Apps in place. Uses a workload-identity service
+# connection (no secrets in variables).
+#
+# Prerequisite variable group "compliance-collector-azure" (linked in the
+# Library) must define:
+#   AZURE_SUBSCRIPTION_CONNECTION  (service connection name, e.g. sc-ccol)
+#   AZURE_RESOURCE_GROUP           e.g. rg-compliance-collector
+#   ACR_NAME                       e.g. ccolabcd12acr
+#   BACKEND_APP_NAME               e.g. ccolabcd12-api
+#   PORTAL_APP_NAME                e.g. ccolabcd12-web
+#   CAE_DEFAULT_DOMAIN             e.g. kindstone-1a2b3c4d.eastus.azurecontainerapps.io
+#   ENTRA_CLIENT_ID                the multi-tenant app client ID (PUBLIC)
+#   ENTRA_API_SCOPE                e.g. api://<client_id>/access_as_user
+# -----------------------------------------------------------------------------
+
+trigger: none          # manual-only
+pr: none
+
+parameters:
+  - name: imageTag
+    displayName: "Image tag"
+    type: string
+    default: "0.6.0"
+
+variables:
+  - group: compliance-collector-azure
+  - name: backendImage
+    value: "$(ACR_NAME).azurecr.io/backend:${{ parameters.imageTag }}"
+  - name: portalImage
+    value: "$(ACR_NAME).azurecr.io/portal:${{ parameters.imageTag }}"
+  - name: backendUrl
+    value: "https://$(BACKEND_APP_NAME).$(CAE_DEFAULT_DOMAIN)"
+  - name: portalUrl
+    value: "https://$(PORTAL_APP_NAME).$(CAE_DEFAULT_DOMAIN)"
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+  - stage: Build
+    displayName: Build & push images
+    jobs:
+
+      - job: BuildBackend
+        displayName: Backend image
+        steps:
+          - checkout: self
+            fetchDepth: 1
+
+          - task: AzureCLI@2
+            displayName: ACR login
+            inputs:
+              azureSubscription: $(AZURE_SUBSCRIPTION_CONNECTION)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: az acr login --name $(ACR_NAME)
+
+          - task: Docker@2
+            displayName: Build & push backend
+            inputs:
+              command: buildAndPush
+              repository: backend
+              dockerfile: backend/Dockerfile
+              buildContext: backend
+              containerRegistry: $(AZURE_SUBSCRIPTION_CONNECTION)
+              tags: |
+                ${{ parameters.imageTag }}
+                latest
+
+      - job: BuildPortal
+        displayName: Portal image
+        steps:
+          - checkout: self
+            fetchDepth: 1
+
+          - task: AzureCLI@2
+            displayName: ACR login
+            inputs:
+              azureSubscription: $(AZURE_SUBSCRIPTION_CONNECTION)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: az acr login --name $(ACR_NAME)
+
+          - task: Docker@2
+            displayName: Build & push portal
+            inputs:
+              command: buildAndPush
+              repository: portal
+              dockerfile: portal/Dockerfile
+              buildContext: portal
+              containerRegistry: $(AZURE_SUBSCRIPTION_CONNECTION)
+              arguments: >-
+                --build-arg NEXT_PUBLIC_BACKEND_URL=$(backendUrl)
+                --build-arg NEXT_PUBLIC_ENTRA_CLIENT_ID=$(ENTRA_CLIENT_ID)
+                --build-arg NEXT_PUBLIC_ENTRA_API_SCOPE=$(ENTRA_API_SCOPE)
+                --build-arg NEXT_PUBLIC_ENTRA_REDIRECT_URI=$(portalUrl)/auth/callback
+                --build-arg NEXT_PUBLIC_DEV_BYPASS_AUTH=false
+              tags: |
+                ${{ parameters.imageTag }}
+                latest
+
+  - stage: Deploy
+    displayName: Update Container Apps
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - deployment: DeployContainerApps
+        displayName: Roll out new images
+        environment: compliance-collector-prod
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureCLI@2
+                  displayName: Update backend
+                  inputs:
+                    azureSubscription: $(AZURE_SUBSCRIPTION_CONNECTION)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az containerapp update \
+                        --resource-group $(AZURE_RESOURCE_GROUP) \
+                        --name $(BACKEND_APP_NAME) \
+                        --image $(backendImage)
+
+                - task: AzureCLI@2
+                  displayName: Update portal
+                  inputs:
+                    azureSubscription: $(AZURE_SUBSCRIPTION_CONNECTION)
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    inlineScript: |
+                      az containerapp update \
+                        --resource-group $(AZURE_RESOURCE_GROUP) \
+                        --name $(PORTAL_APP_NAME) \
+                        --image $(portalImage)
+
+                - script: |
+                    echo "Backend: $(backendUrl)/docs"
+                    echo "Portal:  $(portalUrl)"
+                  displayName: Print endpoints
