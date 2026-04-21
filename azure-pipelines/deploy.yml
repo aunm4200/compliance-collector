@@ -63,7 +63,7 @@ stages:
                   --image backend:${{ parameters.imageTag }} \
                   --image backend:latest \
                   --file backend/Dockerfile \
-                  backend
+                  .
 
       - job: BuildPortal
         displayName: Portal image
