@@ -1,13 +1,16 @@
 # syntax=docker/dockerfile:1.7
 
+# Build context for this Dockerfile is the REPO ROOT, not backend/.
+# docker build -f backend/Dockerfile .
+# or: az acr build --file backend/Dockerfile .
+
 FROM python:3.12-slim AS builder
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
 WORKDIR /build
 
-# The backend depends on the core library; copy both into the build.
-COPY . /build/backend/
-COPY ../src /build/src/
-COPY ../pyproject.toml /build/pyproject.toml
+COPY pyproject.toml /build/pyproject.toml
+COPY src /build/src
+COPY backend /build/backend
 
 RUN pip install --upgrade pip wheel && \
     pip install /build && \
@@ -17,13 +20,11 @@ FROM python:3.12-slim AS runtime
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 WORKDIR /app
 
-# Copy the virtualenv's site-packages from builder
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin/uvicorn /usr/local/bin/uvicorn
 
-COPY app /app/app
+COPY backend/app /app/app
 
-# Non-root user
 RUN useradd --system --create-home --uid 10001 appuser && chown -R appuser /app
 USER appuser
 
