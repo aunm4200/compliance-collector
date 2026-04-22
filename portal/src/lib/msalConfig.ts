@@ -1,4 +1,4 @@
-import { Configuration, LogLevel } from "@azure/msal-browser";
+import { Configuration, LogLevel, PublicClientApplication } from "@azure/msal-browser";
 
 export const msalConfig: Configuration = {
   auth: {
@@ -36,3 +36,20 @@ export const tokenRequest = { scopes: [apiScope] };
 
 export const devBypassAuth =
   process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH === "true";
+
+let _msalInstance: PublicClientApplication | null = null;
+
+export function getMsalInstance(): PublicClientApplication | null {
+  if (devBypassAuth) return null;
+  if (typeof window === "undefined") return null;
+  if (_msalInstance) return _msalInstance;
+
+  _msalInstance = new PublicClientApplication(msalConfig);
+
+  const existingAccount = _msalInstance.getActiveAccount() || _msalInstance.getAllAccounts()[0];
+  if (existingAccount) {
+    _msalInstance.setActiveAccount(existingAccount);
+  }
+
+  return _msalInstance;
+}

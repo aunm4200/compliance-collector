@@ -1,9 +1,9 @@
 "use client";
 
-import { PublicClientApplication, EventType } from "@azure/msal-browser";
+import { EventType } from "@azure/msal-browser";
 import { MsalProvider } from "@azure/msal-react";
 import { useMemo } from "react";
-import { msalConfig, devBypassAuth } from "@/lib/msalConfig";
+import { devBypassAuth, getMsalInstance } from "@/lib/msalConfig";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Branch at the component boundary — each child calls hooks consistently.
@@ -13,14 +13,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 function MsalAuthProvider({ children }: { children: React.ReactNode }) {
   const pca = useMemo(() => {
-    if (typeof window === "undefined") return null;
-    const instance = new PublicClientApplication(msalConfig);
+    const instance = getMsalInstance();
+    if (!instance) return null;
+
     instance.addEventCallback((event) => {
       if (event.eventType === EventType.LOGIN_SUCCESS && event.payload) {
         const account = (event.payload as { account?: unknown }).account;
         if (account) instance.setActiveAccount(account as never);
       }
     });
+
+    const existingAccount = instance.getActiveAccount() || instance.getAllAccounts()[0];
+    if (existingAccount) {
+      instance.setActiveAccount(existingAccount);
+    }
+
     return instance;
   }, []);
 

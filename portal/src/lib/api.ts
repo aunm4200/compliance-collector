@@ -1,28 +1,20 @@
 "use client";
 
-import { PublicClientApplication } from "@azure/msal-browser";
-import { devBypassAuth, msalConfig, tokenRequest } from "./msalConfig";
-
-let _pca: PublicClientApplication | null = null;
-function pca(): PublicClientApplication | null {
-  if (devBypassAuth) return null;
-  if (typeof window === "undefined") return null;
-  if (_pca) return _pca;
-  _pca = new PublicClientApplication(msalConfig);
-  return _pca;
-}
+import { devBypassAuth, getMsalInstance, tokenRequest } from "./msalConfig";
 
 async function getToken(): Promise<string | null> {
   if (devBypassAuth) return null;
-  const instance = pca();
+  const instance = getMsalInstance();
   if (!instance) return null;
   const account = instance.getActiveAccount() || instance.getAllAccounts()[0];
   if (!account) return null;
   try {
     const resp = await instance.acquireTokenSilent({ ...tokenRequest, account });
+    instance.setActiveAccount(resp.account);
     return resp.accessToken;
   } catch {
-    const resp = await instance.acquireTokenPopup(tokenRequest);
+    const resp = await instance.acquireTokenPopup({ ...tokenRequest, account });
+    instance.setActiveAccount(resp.account);
     return resp.accessToken;
   }
 }
