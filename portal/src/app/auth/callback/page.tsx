@@ -22,7 +22,12 @@ function MsalCallback() {
   const { instance } = useMsal();
   useEffect(() => {
     instance
-      .handleRedirectPromise()
+      .initialize()
+      .then(() => instance.handleRedirectPromise())
+      .then((resp) => {
+        const account = resp?.account || instance.getActiveAccount() || instance.getAllAccounts()[0];
+        if (account) instance.setActiveAccount(account);
+      })
       .catch((err) => console.error("MSAL redirect error", err))
       .finally(() => router.replace("/"));
   }, [instance, router]);
