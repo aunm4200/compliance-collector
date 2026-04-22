@@ -3,8 +3,29 @@
 import useSWR from "swr";
 import Link from "next/link";
 import { api } from "@/lib/api";
-import type { AssessmentList } from "@/lib/types";
+import { devBypassAuth } from "@/lib/msalConfig";
+import type { AssessmentList, ConsentRecord } from "@/lib/types";
 import { StatusPill } from "@/components/StatusPill";
+
+function ConsentBanner() {
+  const { data: consent } = useSWR<ConsentRecord>(
+    "/consent/status",
+    (path: string) => api<ConsentRecord>(path),
+    { revalidateOnFocus: false },
+  );
+  if (!consent || consent.status === "granted") return null;
+  return (
+    <div className="rounded-lg border border-amber-500/40 bg-amber-900/20 px-4 py-3 text-sm text-amber-200 flex items-center justify-between gap-4">
+      <span>
+        Admin consent has not been granted for this tenant. Assessments will fail until
+        Graph API access is approved.
+      </span>
+      <Link href="/consent" className="btn-primary shrink-0 text-xs">
+        Grant consent
+      </Link>
+    </div>
+  );
+}
 
 export default function AssessmentsPage() {
   const { data, error, isLoading } = useSWR<AssessmentList>(
@@ -15,6 +36,7 @@ export default function AssessmentsPage() {
 
   return (
     <div className="space-y-6">
+      {!devBypassAuth && <ConsentBanner />}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Assessments</h1>
         <Link href="/assessments/new" className="btn-primary">
