@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import json
 from functools import lru_cache
-from typing import Literal
+from typing import Annotated, Any, Literal
 
-from pydantic import Field
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -25,7 +26,9 @@ class Settings(BaseSettings):
     # --- API ---
     api_host: str = "0.0.0.0"
     api_port: int = 8080
-    cors_allow_origins: list[str] = Field(default_factory=lambda: ["http://localhost:3000"])
+    cors_allow_origins: Annotated[list[str], NoDecode] = Field(
+        default_factory=lambda: ["http://localhost:3000"]
+    )
 
     # --- Entra / auth (inbound: validating JWTs from the portal UI) ---
     entra_app_client_id: str = ""
@@ -48,6 +51,28 @@ class Settings(BaseSettings):
 
     # --- Feature flags ---
     enable_background_jobs: bool = True
+
+    @field_validator("cors_allow_origins", mode="before")
+    @classmethod
+    def _parse_cors_allow_origins(cls, value: Any) -> list[str]:
+        """Accept JSON arrays, comma-separated strings, or a single origin."""
+        if isinstance(value, list):
+            return [str(origin).strip() for origin in value if str(origin).strip()]
+
+        if isinstance(value, str):
+            raw = value.strip()
+            if not raw:
+                return []
+
+            if raw.startswith("["):
+                parsed = json.loads(raw)
+                if not isinstance(parsed, list):
+                    raise ValueError("CORS_ALLOW_ORIGINS JSON value must be an array")
+                return [str(origin).strip() for origin in parsed if str(origin).strip()]
+
+            return [origin.strip() for origin in raw.split(",") if origin.strip()]
+
+        return value
 
 
 @lru_cache
