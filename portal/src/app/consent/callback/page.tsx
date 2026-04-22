@@ -1,11 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import type { ConsentRecord } from "@/lib/types";
 
 export default function ConsentCallbackPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="card max-w-md mx-auto mt-16 space-y-3">
+          <h2 className="font-semibold text-lg">Recording consent…</h2>
+          <p className="text-slate-400 text-sm">Just a moment.</p>
+        </div>
+      }
+    >
+      <ConsentCallbackContent />
+    </Suspense>
+  );
+}
+
+function ConsentCallbackContent() {
   const router = useRouter();
   const params = useSearchParams();
   const [status, setStatus] = useState<"processing" | "success" | "denied" | "error">(
