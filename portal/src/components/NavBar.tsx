@@ -19,6 +19,11 @@ export function NavBar() {
           <Link href="/assessments/new" className="text-slate-300 hover:text-white">
             New assessment
           </Link>
+          {!devBypassAuth && (
+            <Link href="/consent" className="text-slate-300 hover:text-white">
+              Consent
+            </Link>
+          )}
           {devBypassAuth ? <DevModePill /> : <MsalAuthButton />}
         </nav>
       </div>

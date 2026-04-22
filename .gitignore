@@ -39,6 +39,8 @@ secrets/
 # Evidence output — may contain tenant data
 evidence/
 !evidence/.gitkeep
+evidence_store/
+backend/evidence_store/
 
 # Logs
 *.log

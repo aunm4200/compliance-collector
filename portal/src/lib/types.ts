@@ -51,6 +51,22 @@ export interface Principal {
   roles: string[];
 }
 
+export type ConsentStatus = "granted" | "pending" | "denied";
+
+export interface ConsentRecord {
+  tenant_id: string;
+  status: ConsentStatus;
+  consent_granted_at?: string | null;
+  granted_by_oid?: string | null;
+  granted_by_name?: string | null;
+  scopes?: string[];
+}
+
+export interface ConsentInitResponse {
+  consent_url: string;
+  state: string;
+}
+
 export const FRAMEWORKS: { id: Framework; label: string; description: string }[] = [
   {
     id: "cis-m365",

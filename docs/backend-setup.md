@@ -14,8 +14,12 @@ In the **Azure portal → Microsoft Entra ID → App registrations → New regis
 1. **Name**: `compliance-collector`
 2. **Supported account types**: *Accounts in any organizational directory
    (Any Microsoft Entra ID tenant — Multitenant)*.
-3. **Redirect URI**: Single-page application (SPA), set to your portal
-   URL (for local dev: `http://localhost:3000/auth/callback`).
+3. **Redirect URIs**: Add two entries under **Single-page application (SPA)**:
+   * `http://localhost:3000/auth/callback` — MSAL sign-in redirect
+   * `http://localhost:3000/consent/callback` — Admin consent return URI
+
+   > For production, replace `http://localhost:3000` with your portal's FQDN
+   > on both entries.
 4. Click **Register**. Note the **Application (client) ID** — this is
    `ENTRA_APP_CLIENT_ID` throughout.
 
