@@ -1,10 +1,10 @@
 "use client";
 
-import { devBypassAuth, getMsalInstance, tokenRequest } from "./msalConfig";
+import { devBypassAuth, initializeMsal, tokenRequest } from "./msalConfig";
 
 async function getToken(): Promise<string | null> {
   if (devBypassAuth) return null;
-  const instance = getMsalInstance();
+  const instance = await initializeMsal();
   if (!instance) return null;
   const account = instance.getActiveAccount() || instance.getAllAccounts()[0];
   if (!account) return null;

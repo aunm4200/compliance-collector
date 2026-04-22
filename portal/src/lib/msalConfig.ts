@@ -38,6 +38,7 @@ export const devBypassAuth =
   process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH === "true";
 
 let _msalInstance: PublicClientApplication | null = null;
+let _msalInitPromise: Promise<void> | null = null;
 
 export function getMsalInstance(): PublicClientApplication | null {
   if (devBypassAuth) return null;
@@ -52,4 +53,21 @@ export function getMsalInstance(): PublicClientApplication | null {
   }
 
   return _msalInstance;
+}
+
+export async function initializeMsal(): Promise<PublicClientApplication | null> {
+  const instance = getMsalInstance();
+  if (!instance) return null;
+
+  if (!_msalInitPromise) {
+    _msalInitPromise = instance.initialize().then(() => {
+      const existingAccount = instance.getActiveAccount() || instance.getAllAccounts()[0];
+      if (existingAccount) {
+        instance.setActiveAccount(existingAccount);
+      }
+    });
+  }
+
+  await _msalInitPromise;
+  return instance;
 }

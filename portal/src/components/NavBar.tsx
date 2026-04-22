@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useIsAuthenticated, useMsal } from "@azure/msal-react";
-import { loginRequest, devBypassAuth } from "@/lib/msalConfig";
+import { devBypassAuth, loginRequest } from "@/lib/msalConfig";
 
 export function NavBar() {
   return (
@@ -38,6 +38,16 @@ function DevModePill() {
 function MsalAuthButton() {
   const isAuthed = useIsAuthenticated();
   const { instance, accounts } = useMsal();
+
+  async function signIn() {
+    try {
+      await instance.initialize();
+      await instance.loginRedirect(loginRequest);
+    } catch (err) {
+      console.error("MSAL login failed", err);
+    }
+  }
+
   if (isAuthed) {
     return (
       <div className="flex items-center gap-3">
@@ -49,7 +59,7 @@ function MsalAuthButton() {
     );
   }
   return (
-    <button className="btn-primary" onClick={() => instance.loginRedirect(loginRequest)}>
+    <button className="btn-primary" onClick={signIn}>
       Sign in
     </button>
   );
