@@ -136,7 +136,7 @@ resource backend 'Microsoft.App/containerApps@2024-03-01' = {
             { name: 'ENTRA_API_AUDIENCE', value: entraApiAudience }
             { name: 'STORAGE_BACKEND', value: 'local' }
             { name: 'STORAGE_LOCAL_PATH', value: '/app/evidence_store' }
-            { name: 'CORS_ALLOW_ORIGINS', value: portalUrl }
+            { name: 'CORS_ALLOW_ORIGINS', value: string([portalUrl]) }
           ]
         }
       ]
