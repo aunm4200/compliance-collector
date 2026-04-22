@@ -96,7 +96,7 @@ function ConsentView() {
         <div className="card border-accent/30 space-y-3">
           <h2 className="font-semibold">Grant access</h2>
           <p className="text-sm text-slate-300">
-            You will be redirected to Microsoft's admin consent page. Sign in as
+            You will be redirected to Microsoft&apos;s admin consent page. Sign in as
             a Global Administrator and approve the permissions below.
           </p>
           <ul className="text-sm text-slate-400 space-y-1 list-disc list-inside">
