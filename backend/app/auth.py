@@ -21,6 +21,16 @@ from .config import Settings, get_settings
 
 _bearer_scheme = HTTPBearer(auto_error=False)
 
+# Well-Known IDs for Entra ID built-in directory roles.
+# Source: https://learn.microsoft.com/entra/identity/role-based-access-control/permissions-reference
+_GLOBAL_ADMIN_WID = "62e90394-69f5-4237-9190-012177145e10"
+_GLOBAL_READER_WID = "f2ef992c-3afb-46b9-b7cf-a126ee74c451"
+
+_WID_ROLE_MAP = {
+    _GLOBAL_ADMIN_WID: "GlobalAdministrator",
+    _GLOBAL_READER_WID: "GlobalReader",
+}
+
 
 @dataclass(slots=True)
 class Principal:
@@ -118,22 +128,42 @@ async def get_principal(
     claims = await _validate_token(credentials.credentials, settings)
     request.state.claims = claims
 
+    # Map wids (directory role WIDs) → role strings. The roles claim only carries
+    # app roles, not directory roles like Global Administrator or Global Reader.
+    wids: list[str] = claims.get("wids", []) or []
+    roles = [_WID_ROLE_MAP[w] for w in wids if w in _WID_ROLE_MAP]
+    roles.extend(r for r in (claims.get("roles", []) or []) if r not in roles)
+
     return Principal(
         subject=claims.get("sub", ""),
         tenant_id=claims.get("tid", ""),
         object_id=claims.get("oid", ""),
         name=claims.get("name", ""),
         email=claims.get("preferred_username") or claims.get("upn") or "",
-        roles=claims.get("roles", []) or [],
+        roles=roles,
         raw_claims=claims,
     )
 
 
 def require_global_admin(principal: Principal = Depends(get_principal)) -> Principal:
-    """Gate endpoints to users carrying the GlobalAdministrator app role."""
+    """Gate endpoints to Global Administrators."""
     if "GlobalAdministrator" not in principal.roles:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Global Administrator role required",
+        )
+    return principal
+
+
+def require_global_reader_or_admin(principal: Principal = Depends(get_principal)) -> Principal:
+    """Gate endpoints to Global Administrators or Global Readers.
+
+    Swap require_global_admin for this in assessments.py when ready to
+    drop the GA requirement.
+    """
+    if not {"GlobalAdministrator", "GlobalReader"} & set(principal.roles):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Global Administrator or Global Reader role required",
         )
     return principal
