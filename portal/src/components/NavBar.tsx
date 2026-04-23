@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useIsAuthenticated, useMsal } from "@azure/msal-react";
-import { devBypassAuth, loginRequest } from "@/lib/msalConfig";
+import { getPortalConfig } from "@/lib/msalConfig";
 
 export function NavBar() {
   return (
@@ -19,32 +20,37 @@ export function NavBar() {
           <Link href="/assessments/new" className="text-slate-300 hover:text-white">
             New assessment
           </Link>
-          {!devBypassAuth && (
-            <Link href="/consent" className="text-slate-300 hover:text-white">
-              Consent
-            </Link>
-          )}
-          {devBypassAuth ? <DevModePill /> : <MsalAuthButton />}
+          <Link href="/consent" className="text-slate-300 hover:text-white">
+            Consent
+          </Link>
+          <MsalAuthButton />
         </nav>
       </div>
     </header>
   );
 }
 
-function DevModePill() {
-  return <span className="pill-na">dev mode</span>;
-}
-
 function MsalAuthButton() {
   const isAuthed = useIsAuthenticated();
   const { instance, accounts } = useMsal();
+  const [signingIn, setSigningIn] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function signIn() {
+    setSigningIn(true);
+    setError(null);
     try {
+      const cfg = await getPortalConfig();
+      const loginRequest = {
+        scopes: ["openid", "profile", "email", cfg.apiScope],
+      };
       await instance.initialize();
       await instance.loginRedirect(loginRequest);
+      // loginRedirect navigates away — no code runs after this
     } catch (err) {
-      console.error("MSAL login failed", err);
+      console.error("[MSAL] login failed", err);
+      setError("Sign-in failed. Check the browser console for details.");
+      setSigningIn(false);
     }
   }
 
@@ -58,9 +64,13 @@ function MsalAuthButton() {
       </div>
     );
   }
+
   return (
-    <button className="btn-primary" onClick={signIn}>
-      Sign in
-    </button>
+    <div className="flex flex-col items-end gap-1">
+      <button className="btn-primary" onClick={signIn} disabled={signingIn}>
+        {signingIn ? "Redirecting…" : "Sign in"}
+      </button>
+      {error && <p className="text-xs text-red-400 max-w-xs text-right">{error}</p>}
+    </div>
   );
 }

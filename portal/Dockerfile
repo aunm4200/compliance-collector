@@ -12,19 +12,11 @@ RUN npm ci || npm install
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Public env vars MUST be baked in at build time — they're inlined into the bundle.
-ARG NEXT_PUBLIC_ENTRA_CLIENT_ID
-ARG NEXT_PUBLIC_ENTRA_AUTHORITY=https://login.microsoftonline.com/common
-ARG NEXT_PUBLIC_ENTRA_REDIRECT_URI
-ARG NEXT_PUBLIC_ENTRA_API_SCOPE
-ARG NEXT_PUBLIC_BACKEND_URL
+# DEV_BYPASS_AUTH is the only flag that must be baked in (it gates which UI
+# branch is rendered server-side). All Entra / backend config is served at
+# runtime via /api/config so the same image works across environments.
 ARG NEXT_PUBLIC_DEV_BYPASS_AUTH=false
-ENV NEXT_PUBLIC_ENTRA_CLIENT_ID=$NEXT_PUBLIC_ENTRA_CLIENT_ID \
-    NEXT_PUBLIC_ENTRA_AUTHORITY=$NEXT_PUBLIC_ENTRA_AUTHORITY \
-    NEXT_PUBLIC_ENTRA_REDIRECT_URI=$NEXT_PUBLIC_ENTRA_REDIRECT_URI \
-    NEXT_PUBLIC_ENTRA_API_SCOPE=$NEXT_PUBLIC_ENTRA_API_SCOPE \
-    NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL \
-    NEXT_PUBLIC_DEV_BYPASS_AUTH=$NEXT_PUBLIC_DEV_BYPASS_AUTH \
+ENV NEXT_PUBLIC_DEV_BYPASS_AUTH=$NEXT_PUBLIC_DEV_BYPASS_AUTH \
     NEXT_TELEMETRY_DISABLED=1
 
 COPY --from=deps /app/node_modules ./node_modules

@@ -1,21 +1,32 @@
 "use client";
 
-import { devBypassAuth, initializeMsal, tokenRequest } from "./msalConfig";
+import { getPortalConfig, initializeMsal } from "./msalConfig";
 
 async function getToken(): Promise<string | null> {
-  if (devBypassAuth) return null;
+  const cfg = await getPortalConfig();
+  if (cfg.devBypassAuth) return null;
+
   const instance = await initializeMsal();
   if (!instance) return null;
+
   const account = instance.getActiveAccount() || instance.getAllAccounts()[0];
   if (!account) return null;
+
+  const tokenRequest = { scopes: [cfg.apiScope] };
+
   try {
     const resp = await instance.acquireTokenSilent({ ...tokenRequest, account });
     instance.setActiveAccount(resp.account);
     return resp.accessToken;
   } catch {
-    const resp = await instance.acquireTokenPopup({ ...tokenRequest, account });
-    instance.setActiveAccount(resp.account);
-    return resp.accessToken;
+    try {
+      const resp = await instance.acquireTokenPopup({ ...tokenRequest, account });
+      instance.setActiveAccount(resp.account);
+      return resp.accessToken;
+    } catch (popupErr) {
+      console.error("[Auth] Failed to acquire token silently or via popup", popupErr);
+      return null;
+    }
   }
 }
 
