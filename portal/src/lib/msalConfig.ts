@@ -2,6 +2,11 @@
 
 import { Configuration, LogLevel, PublicClientApplication } from "@azure/msal-browser";
 
+// Build-time flag for UI hints (consent banner, etc.).
+// Defaults to false so production images never bypass auth.
+// The authoritative runtime value lives in getPortalConfig().devBypassAuth.
+export const devBypassAuth = process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH === "true";
+
 export interface PortalConfig {
   clientId: string;
   authority: string;
