@@ -15,6 +15,10 @@
 #   CAE_DEFAULT_DOMAIN             e.g. kindstone-1a2b3c4d.eastus.azurecontainerapps.io
 #   ENTRA_CLIENT_ID                the multi-tenant app client ID (PUBLIC)
 #   ENTRA_API_SCOPE                e.g. api://<client_id>/access_as_user
+#
+# Note: Entra / backend config is NO LONGER baked into the portal image at
+# build time. It is injected as Container App env vars at deploy time so the
+# same image works across environments without a rebuild.
 # -----------------------------------------------------------------------------
 
 trigger: none          # manual-only
@@ -83,10 +87,6 @@ stages:
                   --image portal:${{ parameters.imageTag }} \
                   --image portal:latest \
                   --file portal/Dockerfile \
-                  --build-arg NEXT_PUBLIC_BACKEND_URL=$(backendUrl) \
-                  --build-arg NEXT_PUBLIC_ENTRA_CLIENT_ID=$(ENTRA_CLIENT_ID) \
-                  --build-arg NEXT_PUBLIC_ENTRA_API_SCOPE=$(ENTRA_API_SCOPE) \
-                  --build-arg NEXT_PUBLIC_ENTRA_REDIRECT_URI=$(portalUrl)/auth/callback \
                   --build-arg NEXT_PUBLIC_DEV_BYPASS_AUTH=false \
                   portal
 
@@ -124,7 +124,14 @@ stages:
                       az containerapp update \
                         --resource-group $(AZURE_RESOURCE_GROUP) \
                         --name $(PORTAL_APP_NAME) \
-                        --image $(portalImage)
+                        --image $(portalImage) \
+                        --set-env-vars \
+                          ENTRA_CLIENT_ID=$(ENTRA_CLIENT_ID) \
+                          ENTRA_AUTHORITY=https://login.microsoftonline.com/common \
+                          ENTRA_API_SCOPE=$(ENTRA_API_SCOPE) \
+                          ENTRA_REDIRECT_URI=$(portalUrl)/auth/callback \
+                          BACKEND_URL=$(backendUrl) \
+                          DEV_BYPASS_AUTH=false
 
                 - script: |
                     echo "Backend: $(backendUrl)/docs"
