@@ -2,7 +2,12 @@ import { NextRequest } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+// Use BACKEND_URL (no NEXT_PUBLIC_ prefix) so it reads from the Container App
+// env vars at runtime rather than being baked into the bundle at build time.
+const BACKEND_BASE_URL =
+  process.env.BACKEND_URL ||
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  "http://localhost:8080";
 
 async function proxy(request: NextRequest, params: { path: string[] }) {
   const backendBase = BACKEND_BASE_URL.replace(/\/$/, "");
