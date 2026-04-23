@@ -45,11 +45,12 @@ function MsalAuthButton() {
         scopes: ["openid", "profile", "email", cfg.apiScope],
       };
       await instance.initialize();
-      await instance.loginRedirect(loginRequest);
-      // loginRedirect navigates away — no code runs after this
+      const resp = await instance.loginPopup(loginRequest);
+      if (resp?.account) instance.setActiveAccount(resp.account);
     } catch (err) {
       console.error("[MSAL] login failed", err);
       setError("Sign-in failed. Check the browser console for details.");
+    } finally {
       setSigningIn(false);
     }
   }

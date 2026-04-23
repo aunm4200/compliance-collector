@@ -62,7 +62,7 @@ export async function initializeMsal(): Promise<PublicClientApplication | null> 
           authority: cfg.authority || "https://login.microsoftonline.com/common",
           redirectUri: cfg.redirectUri || `${window.location.origin}/auth/callback`,
           postLogoutRedirectUri: window.location.origin,
-          navigateToLoginRequestUrl: true,
+          navigateToLoginRequestUrl: false,
         },
         cache: {
           cacheLocation: "sessionStorage",
